@@ -4,11 +4,17 @@ require('dotenv').config();
 const mongoose = require("mongoose");
 mongoose.set('strictQuery', false);
 const mongoDB = process.env.MONGO_URL;
+const routes = require('./routes');
 
 main().catch(err => console.log(err));
 async function main() {
     await mongoose.connect(mongoDB);
 }
+
+// app.use('/session', routes.session);
+app.use('/users', routes.user);
+//app.use('/posts', routes.post);
+//app.use('/comments', routes.comment);
 
 app.get('/', (req, res) => {
     res.send("Hello world!");
