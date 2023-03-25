@@ -8,6 +8,7 @@ const UserSchema = new Schema({
     password: {type: String, required: true},
     liked_posts: [{type: Schema.Types.ObjectId, ref: "Post", required: true}],
     liked_comments: [{type: Schema.Types.ObjectId, ref: "Comment", required: true}],
+    is_admin: {type: Boolean, required: true},
 });
 
 module.exports = mongoose.model("User", UserSchema);
