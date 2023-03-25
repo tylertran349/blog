@@ -4,9 +4,26 @@ const router = Router();
 const User = require("../models/user");
 const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 router.use(express.json());
 router.use(express.urlencoded({extended: true}));
+
+// Custom middleware function sued to verify JSON web token
+function verifyToken(req, res, next) {
+    const token = req.header("Authorization");
+    if(!token) { // If there's no token in the "Authorization" header, return an 401 status code with an error message
+        return res.status(401).json({error: "Access denied: no token provided."});
+    }
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); // If there's a token, use jwt.verify() to decode it using the SECRET_KEY environment variable
+        req.user = decoded.user; // If token is valid, set req.user property to the decoded user object and call next() to proceed to the next route handler
+        next();
+    } catch(err) {
+        res.status(400)/json({error: "Invalid token"}); // Run only if the token is invalid
+    }
+}
 
 router.get('/', async (req, res) => {
     try {
@@ -33,6 +50,7 @@ router.post('/', async (req, res) => {
                         password: hashedPassword,
                         liked_posts: [],
                         liked_comments: [],
+                        is_admin: false,
                     });
                     user.save().then(function() {
                         res.json(user);
@@ -61,7 +79,7 @@ router.get('/:userId', async (req, res) => {
     }
 });
 
-router.put('/:userId', async (req, res) => {
+router.put('/:userId', verifyToken, async (req, res) => {
     try {
         const user = await User.findByIdAndUpdate(req.params.userId, req.body, {new: true}); // req.params.userId gets user id of user to be updated, req.body gets the updated data, new: true tells Mongoose to return the update document instead of the original one
         if(!user) {
@@ -74,7 +92,7 @@ router.put('/:userId', async (req, res) => {
     }
 });
 
-router.delete('/:userId', async (req, res) => {
+router.delete('/:userId', verifyToken, async (req, res) => {
     try {
         const user = await User.findByIdAndRemove(req.params.userId);
         if(!user) {
@@ -85,6 +103,20 @@ router.delete('/:userId', async (req, res) => {
         console.error(err.message);
         res.status(500).json({error: "Server error"});
     }
+});
+
+router.post('/login', async(req, res) => {
+    const {username, password} = req.body; // Destructure username and password from request body
+    const user = User.findOne({username});
+    if(!user) {
+        return res.status(404).json({error: "User not found"}); // Only if user enters a username that does not exist
+    }
+    const passwordMatch = await bcrypt.compare(password, user.password); // password = password entered into form, user.password = user's actual password (stored in database)
+    if(!passwordMatch) {
+        return res.status(401).json({error: "Incorrect password"}); // Only if user enters incorrect password
+    }
+    const token = jwt.sign({userId: user._id}, process.env.JWT_SECRET_KEY); // Create and sign the JWT
+    res.json({token}); // Send the JWT as a response
 });
 
 module.exports = router;
