@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 mongoose.set('strictQuery', false);
 const mongoDB = process.env.MONGO_URL;
 const routes = require('./routes');
+const passport = require('./passport');
 
 main().catch(err => console.log(err));
 async function main() {
@@ -15,10 +16,6 @@ async function main() {
 app.use('/users', routes.user);
 //app.use('/posts', routes.post);
 //app.use('/comments', routes.comment);
-
-app.get('/', (req, res) => {
-    res.send("Hello world!");
-});
 
 app.listen(3000, () => {
     console.log("App listening on port 3000");
