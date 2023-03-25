@@ -107,7 +107,7 @@ router.delete('/:userId', verifyToken, async (req, res) => {
 
 router.post('/login', async(req, res) => {
     const {username, password} = req.body; // Destructure username and password from request body
-    const user = User.findOne({username});
+    const user = await User.findOne({username});
     if(!user) {
         return res.status(404).json({error: "User not found"}); // Only if user enters a username that does not exist
     }
