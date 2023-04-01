@@ -13,7 +13,7 @@ async function main() {
 
 // app.use('/session', routes.session);
 app.use('/users', routes.user);
-//app.use('/posts', routes.post);
+app.use('/posts', routes.post);
 //app.use('/comments', routes.comment);
 
 app.listen(3000, () => {
