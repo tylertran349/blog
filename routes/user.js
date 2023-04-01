@@ -25,7 +25,7 @@ router.post('/', [
     body('first_name').trim().isLength({min: 1}).escape().withMessage("First name must be specified.").isAlphanumeric().withMessage("First name has non-alphanumeric characters."),
     body('last_name').trim().isLength({min: 1}).escape().withMessage("Last name must be specified.").isAlphanumeric().withMessage("Last name has non-alphanumeric characters."),
     body('password').trim().isLength({min: 8}).escape().withMessage("Password must have 8 or more characters."),
-    body('confirm-password').trim().escape().custom((value, {req}) => value === req.body.password).withMessage("The passwords do not match."),
+    body('confirm_password').trim().escape().custom((value, {req}) => value === req.body.password).withMessage("The passwords do not match."),
 ], async (req, res) => {
     try {
         const validation_errors = validationResult(req); // validationResult(req) returns a result object containing the validation errors for a given request
@@ -43,8 +43,6 @@ router.post('/', [
                         first_name,
                         last_name,
                         password: hashedPassword,
-                        liked_posts: [],
-                        liked_comments: [],
                         is_admin: false,
                     });
                     user.save().then(function() {
