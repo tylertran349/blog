@@ -2,7 +2,6 @@ const express = require('express');
 const { Router } = require('express');
 const router = Router();
 const User = require("../models/user");
-const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
@@ -17,7 +16,6 @@ router.get('/', async (req, res) => {
         const users = await User.find();
         res.json(users);
     } catch(err) {
-        console.error(err.message);
         res.status(500).json({error: 'Server error'});
     }
 });
@@ -58,7 +56,6 @@ router.post('/', [
             }
         });
     } catch(err) {
-        console.error(err.message);
         res.status(500).json({error: 'Server error'});
     }
 });
@@ -71,35 +68,47 @@ router.get('/:userId', async (req, res) => {
         }
         res.json(user);
     } catch(err) { // Only if there's an error while trying to retrieve user data from database
-        console.error(err.message);
         res.status(500).json({error: 'Server error'});
     }
 });
 
-router.put('/:userId', async (req, res) => {
-    try {
-        const user = await User.findByIdAndUpdate(req.params.userId, req.body, {new: true}); // req.params.userId gets user id of user to be updated, req.body gets the updated data, new: true tells Mongoose to return the update document instead of the original one
-        if(!user) {
-            return res.status(404).send({error: "User not found"});
+router.put('/:userId', verifyToken, (req, res) => {
+    jwt.verify(req.token, process.env.JWT_SECRET_KEY, async(err, token) => {
+        if(err) {
+            return res.status(403).json({error: "Error 403: Forbidden"});
         }
-        res.json(user);
-    } catch(err) { // Only if there's an error while trying to retrieve user data from database
-        console.error(err.message);
-        res.status(500).json({error: "Server error"});
-    }
+        try {
+            if(req.body.password) {
+                const salt = await bcrypt.genSalt(10); // Generate salt (a random string that's added to a password before hashing it)
+                const hashedPassword = await bcrypt.hash(req.body.password, salt); // Hash the new password
+                req.body.password = hashedPassword; // Replace the original password in the request body with the hashed one
+            }
+            const user = await User.findByIdAndUpdate(req.params.userId, req.body, {new: true}); // req.params.userId gets user id of user to be updated, req.body gets the updated data, new: true tells Mongoose to return the updated document instead of the original one
+            if(!user) {
+                return res.status(404).send({error: "User not found"});
+            }
+            res.json(user);
+        } catch {
+            res.status(500).json({error: "Server error"});
+        }
+    })
 });
 
-router.delete('/:userId', async (req, res) => {
-    try {
-        const user = await User.findByIdAndRemove(req.params.userId);
-        if(!user) {
-            return res.status(404).send({error: "User not found"});
+router.delete('/:userId', verifyToken, (req, res) => {
+    jwt.verify(req.token, process.env.JWT_SECRET_KEY, async(err, token) => {
+        if(err) {
+            return res.status(403).json({error: "Error 403: Forbidden"});
+        } 
+        try {
+            const user = await User.findByIdAndRemove(req.params.userId);
+            if(!user) {
+                return res.status(404).send({error: "User not found"});
+            }
+            res.json(user);
+        } catch {
+            res.status(500).json({error: "Server error"});
         }
-        res.json(user);
-    } catch(err) { // Only if there's an error while trying to retrieve user data from database
-        console.error(err.message);
-        res.status(500).json({error: "Server error"});
-    }
+    })
 });
 
 router.post('/login', async(req, res) => {
