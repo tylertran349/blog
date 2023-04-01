@@ -112,10 +112,10 @@ router.post('/login', async(req, res) => {
     if(!passwordMatch) {
         return res.status(401).json({error: "Incorrect password"}); // Only if user enters incorrect password
     }
+
+    // Generate JSON web token when user enters correct login credentials
     jwt.sign({user}, process.env.JWT_SECRET_KEY, (err, token) => {
-        res.json({
-            token
-        });
+        res.json({token});
     });
 });
 
