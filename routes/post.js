@@ -21,8 +21,8 @@ router.get('/', async(req, res) => {
 });
 
 router.post('/', verifyToken, [
-    body('title').isLength({min: 1}).escape().withMessage("Post title must be specified."),
-    body('content').isLength({min: 1}).escape().withMessage("Content of post must be specified."),
+    body('title').isLength({min: 1}).escape().withMessage("Post title must have one or more characters."),
+    body('content').isLength({min: 1}).escape().withMessage("Post content must have one or more characters."),
     body('published').isBoolean().withMessage("published must be a boolean value."),
 ], (req, res) => {
     jwt.verify(req.token, process.env.JWT_SECRET_KEY, (err, token) => {
