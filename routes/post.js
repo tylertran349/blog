@@ -15,10 +15,18 @@ router.get('/', async(req, res) => {
         const posts = await Post.find();
         res.json(posts);
     } catch(err) {
-        console.error(err.message);
         res.status(500).json({error: "Server error"});
     }
 });
+
+router.get('/:postId', async(req, res) => {
+    try {
+        const post = await Post.findById(req.params.postId);
+        res.json(post);
+    } catch(err) {
+        res.status(500).json({error: "Server error"});
+    }
+})
 
 router.post('/', verifyToken, [
     body('title').isLength({min: 1}).escape().withMessage("Post title must have one or more characters."),
