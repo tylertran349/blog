@@ -19,6 +19,15 @@ router.get('/', async(req, res) => {
     }
 });
 
+router.get('/:commentId', async(req, res) => {
+    try {
+        const comment = await Comment.findById(req.params.commentId);
+        res.json(comment);
+    } catch(err) {
+        res.status(500).json({error: "Server error"});
+    }
+})
+
 router.post('/', verifyToken, [
     body('content').isLength({min: 1}).escape().withMessage("Comment must have one or more characters."),
 ], (req, res) => {
