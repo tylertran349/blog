@@ -20,6 +20,15 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get('/:userId', async(req, res) => {
+    try {
+        const user = await User.findById(req.params.userId);
+        res.json(user);
+    } catch(err) {
+        res.status(500).json({error: "Server error"});
+    }
+});
+
 router.post('/', [
     body('username').trim().isLength({min: 1}).escape().withMessage("Username must be specified.").isAlphanumeric().withMessage("Username has non-alphanumeric characters."),
     body('first_name').trim().isLength({min: 1}).escape().withMessage("First name must be specified.").isAlphanumeric().withMessage("First name has non-alphanumeric characters."),
