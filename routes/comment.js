@@ -2,6 +2,7 @@ const express = require('express');
 const { Router } = require('express');
 const router = Router();
 const Comment = require("../models/comment");
+const Post = require("../models/post");
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 require('dotenv').config();
@@ -31,7 +32,7 @@ router.get('/:commentId', async(req, res) => {
 router.post('/', verifyToken, [
     body('content').isLength({min: 1}).escape().withMessage("Comment must have one or more characters."),
 ], (req, res) => {
-    jwt.verify(req.token, process.env.JWT_SECRET_KEY, (err, token) => {
+    jwt.verify(req.token, process.env.JWT_SECRET_KEY, async(err, token) => {
         if(err) {
             return res.status(403).json({error: "Error 403: Forbidden"});
         }
@@ -44,11 +45,20 @@ router.post('/', verifyToken, [
                 user: token.user,
                 post,
             });
+            const foundPost = await Post.findById(post); // Find blog post associated with comment
+            if(!foundPost) {
+                return res.status(404).json({error: "Post not found."}); // Only if blog post associated with comment was not found in database
+            }
+            foundPost.comments.push(comment); // Add comment to comments array associated with blog post
+            const updatedPost = await foundPost.save(); 
+            if(!updatedPost) {
+                return res.status(500).json({error: "Could not update blog post in database."}); // Only if blog post could not be updated in database
+            }
             comment.save().then(function() {
                 res.json(comment);
             }, function(err) {
                 return res.status(500).json({error: "Could not create new comment in database."});
-            })
+            });
         } catch {
             res.status(500).json({error: "Server error"});
         }
