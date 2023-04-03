@@ -11,7 +11,8 @@ async function main() {
     await mongoose.connect(mongoDB);
 }
 
-// app.use('/session', routes.session);
+app.use(express.static('public'));
+
 app.use('/users', routes.user);
 app.use('/posts', routes.post);
 app.use('/comments', routes.comment);
