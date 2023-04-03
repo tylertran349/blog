@@ -7,7 +7,7 @@ const mongoDB = process.env.MONGO_URL;
 const routes = require('./routes');
 const cors = require('cors');
 
-router.use(cors());
+app.use(cors());
 
 main().catch(err => console.log(err));
 async function main() {
