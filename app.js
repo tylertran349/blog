@@ -17,6 +17,8 @@ app.use('/users', routes.user);
 app.use('/posts', routes.post);
 app.use('/comments', routes.comment);
 
-app.listen(3000, () => {
+const port = process.env.PORT || 3000; // Use the PORT environment variable if it exists, otherwise, default to port 3000
+
+app.listen(port, () => {
     console.log("App listening on port 3000");
 });
