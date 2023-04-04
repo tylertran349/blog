@@ -50,6 +50,7 @@ router.post('/', verifyToken, [
                 return res.status(404).json({error: "Post not found."}); // Only if blog post associated with comment was not found in database
             }
             foundPost.comments.push(comment); // Add comment to comments array associated with blog post
+            await foundPost.save();
             comment.save().then(function() {
                 res.json(comment);
             }, function(err) {
