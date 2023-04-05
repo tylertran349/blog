@@ -87,16 +87,13 @@ router.delete('/:commentId', verifyToken, (req, res) => {
             return res.status(403).json({error: "Error 403: Forbidden"});
         }
         try {
-            const foundPost = await Post.findById(post);
-            if(!foundPost) {
-                return res.status(404).json({error: "Post not found."});
-            }
-            foundPost.comments = foundPost.comments.filter((comment) => comment._id !== req.params.commentId);
-            await foundPost.save();
             const comment = await Comment.findByIdAndRemove(req.params.commentId);
             if(!comment) {
                 return res.status(404).send({error: "Comment not found."});
             }
+            const post = await Post.findOne({ comments: req.params.commentId });
+            post.comments = post.comments.filter((commentId) => commentId !== req.params.commentId);
+            await post.save();
             res.json(comment);
         } catch {
             res.status(500).json({error: "Server error"});
