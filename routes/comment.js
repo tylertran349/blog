@@ -91,7 +91,7 @@ router.delete('/:commentId', verifyToken, (req, res) => {
             if(!foundPost) {
                 return res.status(404).json({error: "Post not found."});
             }
-            foundPost.comments = foundPost.comments.filter((comment) => comment !== req.params.commentId);
+            foundPost.comments = foundPost.comments.filter((comment) => comment._id !== req.params.commentId);
             await foundPost.save();
             const comment = await Comment.findByIdAndRemove(req.params.commentId);
             if(!comment) {
