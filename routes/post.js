@@ -58,7 +58,7 @@ router.post('/', verifyToken, [
                 title,
                 content,
                 date: new Date(),
-                likes: 0,
+                liked_by: [],
                 published,
                 user: token.user, // token.user = user associated with decoded token
                 comments: [],

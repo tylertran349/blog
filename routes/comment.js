@@ -41,7 +41,7 @@ router.post('/', verifyToken, [
             const comment = new Comment({
                 content,
                 date: new Date(),
-                likes: 0,
+                liked_by: [],
                 user: token.user,
                 post,
             });
