@@ -79,7 +79,7 @@ router.get('/:userId', async (req, res) => {
     }
 });
 
-router.put('/:userId', verifyToken, (req, res) => {
+router.patch('/:userId', verifyToken, (req, res) => {
     jwt.verify(req.token, process.env.JWT_SECRET_KEY, async(err, token) => {
         if(err) {
             return res.status(403).json({error: "Error 403: Forbidden"});

@@ -74,7 +74,7 @@ router.post('/', verifyToken, [
     });
 });
 
-router.put('/:postId', verifyToken, [
+router.patch('/:postId', verifyToken, [
     body('title').isLength({min: 1}).escape().withMessage("Post title must be specified."),
     body('content').isLength({min: 1}).escape().withMessage("Content of post must be specified."),
     body('published').isBoolean().withMessage("published must be a boolean value."),
