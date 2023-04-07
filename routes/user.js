@@ -2,6 +2,8 @@ const express = require('express');
 const { Router } = require('express');
 const router = Router();
 const User = require("../models/user");
+const Post = require("../models/post");
+const Comment = require("../models/comment");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
@@ -132,6 +134,8 @@ router.delete('/:userId', verifyToken, (req, res) => {
             if(!user) {
                 return res.status(404).send({error: "User not found"});
             }
+            await Post.deleteMany({ user: user._id }); // Delete any posts associated with the deleted user
+            await Comment.deleteMany({ user: user._id }); // Delete any comments associated with the deleted user
             res.json(user);
         } catch {
             res.status(500).json({error: "Server error"});
