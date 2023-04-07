@@ -105,6 +105,7 @@ router.delete('/:postId', verifyToken, (req, res) => {
             if(!post) {
                 return res.status(404).send({error: "Post not found"});
             }
+            await Comment.deleteMany({ post: post._id }); // Delete any comments associated with the deleted post
             res.json(post);
         } catch {
             res.status(500).json({error: "Server error"});
