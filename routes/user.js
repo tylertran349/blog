@@ -22,12 +22,15 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/:userId', async(req, res) => {
+router.get('/:userId', async (req, res) => {
     try {
-        const user = await User.findById(req.params.userId);
+        const user = await User.findById(req.params.userId); // Find user in database with id specified in URL
+        if(!user) { // If findById() results in null, !user will be true
+            return res.status(404).json({error: "User not found"});
+        }
         res.json(user);
-    } catch(err) {
-        res.status(500).json({error: "Server error"});
+    } catch(err) { // Only if there's an error while trying to retrieve user data from database
+        res.status(500).json({error: 'Server error'});
     }
 });
 
@@ -65,18 +68,6 @@ router.post('/', [
             }
         });
     } catch(err) {
-        res.status(500).json({error: 'Server error'});
-    }
-});
-
-router.get('/:userId', async (req, res) => {
-    try {
-        const user = await User.findById(req.params.userId); // Find user in database with id specified in URL
-        if(!user) { // If findById() results in null, !user will be true
-            return res.status(404).json({error: "User not found"});
-        }
-        res.json(user);
-    } catch(err) { // Only if there's an error while trying to retrieve user data from database
         res.status(500).json({error: 'Server error'});
     }
 });
@@ -134,9 +125,9 @@ router.delete('/:userId', verifyToken, (req, res) => {
             if(!user) {
                 return res.status(404).send({error: "User not found"});
             }
-            await Post.deleteMany({ user: user._id }); // Delete any posts associated with the deleted user
+            await Post.deleteMany({ user: user._id }); // Delete any comments associated with the deleted user
             await Comment.deleteMany({ user: user._id }); // Delete any comments associated with the deleted user
-            res.json(user);
+            res.json({message: "User deleted successfully."});
         } catch {
             res.status(500).json({error: "Server error"});
         }
