@@ -79,18 +79,39 @@ router.get('/:userId', async (req, res) => {
     }
 });
 
-router.patch('/:userId', verifyToken, (req, res) => {
+// TODO: Push changes to GitHub
+router.patch('/:userId', verifyToken, [
+    body('username').trim().isLength({min: 1}).escape().withMessage("Username must be specified.").isAlphanumeric().withMessage("Username has non-alphanumeric characters."),
+    body('first_name').trim().isLength({min: 1}).escape().withMessage("First name must be specified.").isAlphanumeric().withMessage("First name has non-alphanumeric characters."),
+    body('last_name').trim().isLength({min: 1}).escape().withMessage("Last name must be specified.").isAlphanumeric().withMessage("Last name has non-alphanumeric characters."),
+    body('old_password').trim().isLength({min: 8}).escape().withMessage("You must enter your old password."),
+    body('password').trim().isLength({min: 8}).escape().withMessage("Password must have 8 or more characters."),
+    body('confirm_password').trim().escape().custom((value, {req}) => value === req.body.password).withMessage("The passwords do not match."),
+], (req, res) => {
     jwt.verify(req.token, process.env.JWT_SECRET_KEY, async(err, token) => {
         if(err) {
             return res.status(403).json({error: "Error 403: Forbidden"});
         }
         try {
+            let user = await User.findById(req.params.userId);
+            if(!user) {
+                return res.status(404).send({error: "User not found."});
+            }
+            const updatedFields = {}; // Create an object that only holds the fields included in the request body
+            if(req.body.username) updatedFields.username = req.body.username;
+            if(req.body.first_name) updatedFields.first_name = req.body.first_name;
+            if(req.body.last_name) updatedFields.last_name = req.body.last_name;
             if(req.body.password) {
+                // Only check for old password if user is changing their password
+                const checkOldPassword = await bcrypt.compare(req.body.old_password, user.password); // Compare old password from request body and old password currently stored in database
+                if(!checkOldPassword) {
+                    return res.status(401).json({error: "Incorrect password."});
+                }
                 const salt = await bcrypt.genSalt(10); // Generate salt (a random string that's added to a password before hashing it)
                 const hashedPassword = await bcrypt.hash(req.body.password, salt); // Hash the new password
-                req.body.password = hashedPassword; // Replace the original password in the request body with the hashed one
+                updatedFields.password = hashedPassword; // Replace the original password in the request body with the hashed one
             }
-            const user = await User.findByIdAndUpdate(req.params.userId, req.body, {new: true}); // req.params.userId gets user id of user to be updated, req.body gets the updated data, new: true tells Mongoose to return the updated document instead of the original one
+            user = await User.findByIdAndUpdate(req.params.userId, updatedFields, {new: true}); // req.params.userId gets user id of user to be updated, updatedFields contains any fields that were updated, new: true tells Mongoose to return the updated document instead of the original one
             if(!user) {
                 return res.status(404).send({error: "User not found"});
             }
