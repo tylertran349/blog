@@ -72,7 +72,6 @@ router.post('/', [
     }
 });
 
-// TODO: Push changes to GitHub
 router.patch('/:userId', verifyToken, [
     body('username').trim().isLength({min: 1}).escape().withMessage("Username must be specified.").isAlphanumeric().withMessage("Username has non-alphanumeric characters."),
     body('first_name').trim().isLength({min: 1}).escape().withMessage("First name must be specified.").isAlphanumeric().withMessage("First name has non-alphanumeric characters."),
@@ -80,6 +79,7 @@ router.patch('/:userId', verifyToken, [
     body('old_password').trim().isLength({min: 8}).escape().withMessage("You must enter your old password."),
     body('password').trim().isLength({min: 8}).escape().withMessage("Password must have 8 or more characters."),
     body('confirm_password').trim().escape().custom((value, {req}) => value === req.body.password).withMessage("The passwords do not match."),
+    body('admin_passcode').trim().escape().custom((value, {req}) => value === process.env.ADMIN_PASSCODE).withMessage("The admin passcode you entered is incorrect."),
 ], (req, res) => {
     jwt.verify(req.token, process.env.JWT_SECRET_KEY, async(err, token) => {
         if(err) {
@@ -104,6 +104,7 @@ router.patch('/:userId', verifyToken, [
                 const hashedPassword = await bcrypt.hash(req.body.password, salt); // Hash the new password
                 updatedFields.password = hashedPassword; // Replace the original password in the request body with the hashed one
             }
+            if(req.body.admin_passcode) updatedFields.is_admin = true;
             user = await User.findByIdAndUpdate(req.params.userId, updatedFields, {new: true}); // req.params.userId gets user id of user to be updated, updatedFields contains any fields that were updated, new: true tells Mongoose to return the updated document instead of the original one
             if(!user) {
                 return res.status(404).send({error: "User not found"});
