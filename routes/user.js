@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
         const users = await User.find();
         res.json(users);
     } catch(err) {
-        res.status(500).json({error: 'Server error'});
+        res.status(500).json({error: 'Server error. Please try again.'});
     }
 });
 
@@ -26,11 +26,11 @@ router.get('/:userId', async (req, res) => {
     try {
         const user = await User.findById(req.params.userId); // Find user in database with id specified in URL
         if(!user) { // If findById() results in null, !user will be true
-            return res.status(404).json({error: "User not found"});
+            return res.status(404).json({error: "User not found."});
         }
         res.json(user);
     } catch(err) { // Only if there's an error while trying to retrieve user data from database
-        res.status(500).json({error: 'Server error'});
+        res.status(500).json({error: 'Server error. Please try again.'});
     }
 });
 
@@ -39,7 +39,7 @@ router.post('/', [
     body('first_name').trim().isLength({min: 1}).escape().withMessage("First name must be specified.").isAlphanumeric().withMessage("First name has non-alphanumeric characters."),
     body('last_name').trim().isLength({min: 1}).escape().withMessage("Last name must be specified.").isAlphanumeric().withMessage("Last name has non-alphanumeric characters."),
     body('password').trim().isLength({min: 8}).escape().withMessage("Password must have 8 or more characters."),
-    body('confirm_password').trim().escape().custom((value, {req}) => value === req.body.password).withMessage("The passwords do not match."),
+    body('confirm_password').trim().escape().custom((value, {req}) => value === req.body.password).withMessage("The passwords do not match. "),
 ], async (req, res) => {
     try {
         const validation_errors = validationResult(req); // validationResult(req) returns a result object containing the validation errors for a given request
@@ -62,13 +62,13 @@ router.post('/', [
                     user.save().then(function() {
                         res.json(user);
                     }, function(err) {
-                        return res.status(500).json({error: 'Could not create new user in database'}); // Use status code 500 for any unexpected server-related errors
+                        return res.status(500).json({error: 'Could not create new user in database. Please try again.'}); // Use status code 500 for any unexpected server-related errors
                     });
                 });
             }
         });
     } catch(err) {
-        res.status(500).json({error: 'Server error'});
+        res.status(500).json({error: 'Server error. Please try again.'});
     }
 });
 
@@ -88,7 +88,7 @@ router.patch('/:userId', verifyToken, [
         try {
             let user = await User.findById(req.params.userId);
             if(!user) {
-                return res.status(404).send({error: "User not found."});
+                return res.status(404).json({error: "User not found."});
             }
             const updatedFields = {}; // Create an object that only holds the fields included in the request body
             if(req.body.username) updatedFields.username = req.body.username;
@@ -107,11 +107,11 @@ router.patch('/:userId', verifyToken, [
             if(req.body.admin_passcode) updatedFields.is_admin = true;
             user = await User.findByIdAndUpdate(req.params.userId, updatedFields, {new: true}); // req.params.userId gets user id of user to be updated, updatedFields contains any fields that were updated, new: true tells Mongoose to return the updated document instead of the original one
             if(!user) {
-                return res.status(404).send({error: "User not found"});
+                return res.status(404).json({error: "User not found."});
             }
             res.json(user);
         } catch {
-            res.status(500).json({error: "Server error"});
+            res.status(500).json({error: "Server error. Please try again."});
         }
     })
 });
@@ -119,18 +119,18 @@ router.patch('/:userId', verifyToken, [
 router.delete('/:userId', verifyToken, (req, res) => {
     jwt.verify(req.token, process.env.JWT_SECRET_KEY, async(err, token) => {
         if(err) {
-            return res.status(403).json({error: "Error 403: Forbidden"});
+            return res.status(403).json({error: "Invalid or expired JSON web token."});
         } 
         try {
             const user = await User.findByIdAndRemove(req.params.userId);
             if(!user) {
-                return res.status(404).send({error: "User not found"});
+                return res.status(404).json({error: "User not found."});
             }
             await Post.deleteMany({ user: user._id }); // Delete any comments associated with the deleted user
             await Comment.deleteMany({ user: user._id }); // Delete any comments associated with the deleted user
             res.json({message: "User deleted successfully."});
         } catch {
-            res.status(500).json({error: "Server error"});
+            res.status(500).json({error: "Server error."});
         }
     })
 });
