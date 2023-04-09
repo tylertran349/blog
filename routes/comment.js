@@ -16,7 +16,7 @@ router.get('/', async(req, res) => {
         const comments = await Comment.find();
         res.json(comments);
     } catch(err) {
-        res.status(500).json({error: "Server error"});
+        res.status(500).json({error: "Server error. Please try again."});
     }
 });
 
@@ -25,7 +25,7 @@ router.get('/:commentId', async(req, res) => {
         const comment = await Comment.findById(req.params.commentId);
         res.json(comment);
     } catch(err) {
-        res.status(500).json({error: "Server error"});
+        res.status(500).json({error: "Server error. Please try again."});
     }
 })
 
@@ -34,9 +34,13 @@ router.post('/', verifyToken, [
 ], (req, res) => {
     jwt.verify(req.token, process.env.JWT_SECRET_KEY, async(err, token) => {
         if(err) {
-            return res.status(403).json({error: "Error 403: Forbidden"});
+            return res.status(403).json({error: "Invalid or expired JSON web token."});
         }
         try {
+            const validation_errors = validationResult(req);
+            if(!validation_errors.isEmpty()) {
+                return res.status(400).json({errors: validation_errors.array()});
+            }
             const {content, post} = req.body;
             const comment = new Comment({
                 content,
@@ -54,10 +58,10 @@ router.post('/', verifyToken, [
             comment.save().then(function() {
                 res.json(comment);
             }, function(err) {
-                return res.status(500).json({error: "Could not create new comment in database."});
+                return res.status(500).json({error: "Could not create new comment in database. Please try again."});
             });
         } catch {
-            res.status(500).json({error: "Server error"});
+            res.status(500).json({error: "Server error. Please try again."});
         }
     });
 });
@@ -67,16 +71,20 @@ router.patch('/:commentId', verifyToken, [
 ], (req, res) => {
     jwt.verify(req.token, process.env.JWT_SECRET_KEY, async(err, token) => {
         if(err) {
-            return res.status(403).json({error: "Error 403: Forbidden"});
+            return res.status(403).json({error: "Invalid or expired JSON web token."});
+        }
+        const validation_errors = validationResult(req);
+        if(!validation_errors.isEmpty()) {
+            return res.status(400).json({errors: validation_errors.array()});
         }
         try {
             const comment = await Comment.findByIdAndUpdate(req.params.commentId, req.body, {new: true});
             if(!comment) {
-                return res.status(404).send({error: "Comment not found."});
+                return res.status(404).json({error: "Comment not found."});
             }
             res.json(comment);
         } catch {
-            res.status(500).json({error: "Server error"});
+            res.status(500).json({error: "Server error. Please try again."});
         }
     });
 });
@@ -84,22 +92,22 @@ router.patch('/:commentId', verifyToken, [
 router.delete('/:commentId', verifyToken, (req, res) => {
     jwt.verify(req.token, process.env.JWT_SECRET_KEY, async(err, token) => {
         if(err) {
-            return res.status(403).json({error: "Error 403: Forbidden"});
+            return res.status(403).json({error: "Invalid or expired JSON web token."});
         }
         try {
             const comment = await Comment.findByIdAndRemove(req.params.commentId);
             if(!comment) {
-                return res.status(404).send({error: "Comment not found."});
+                return res.status(404).json({error: "Comment not found."});
             }
             const post = await Post.findOne({ comments: req.params.commentId });
             if(!post) {
-                return res.status(404).send({error: "Post not found."});
+                return res.status(404).json({error: "Post not found."});
             }
             post.comments = post.comments.filter((commentObj) => commentObj._id.toString() !== req.params.commentId);
             await post.save();
             res.json(comment);
         } catch {
-            res.status(500).json({error: "Server error"});
+            res.status(500).json({error: "Server error. Please try again."});
         }
     });
 });
