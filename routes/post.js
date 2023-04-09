@@ -15,7 +15,7 @@ router.get('/', async(req, res) => {
         const posts = await Post.find();
         res.json(posts);
     } catch(err) {
-        res.status(500).json({error: "Server error"});
+        res.status(500).json({error: "Server error. Please try again."});
     }
 });
 
@@ -24,7 +24,7 @@ router.get('/:postId', async(req, res) => {
         const post = await Post.findById(req.params.postId);
         res.json(post);
     } catch(err) {
-        res.status(500).json({error: "Server error"});
+        res.status(500).json({error: "Server error. Please try again."});
     }
 });
 
@@ -33,7 +33,7 @@ router.get('/:postId/comments', async(req, res) => {
         const post = await Post.findById(req.params.postId);
         res.json(post.comments);
     } catch(err) {
-        res.status(500).json({error: "Server error"});
+        res.status(500).json({error: "Server error. Please try again."});
     }
 });
 
@@ -44,7 +44,7 @@ router.post('/', verifyToken, [
 ], (req, res) => {
     jwt.verify(req.token, process.env.JWT_SECRET_KEY, (err, token) => {
         if(err) {
-            return res.status(403).json({error: "Error 403: Forbidden"}); // Only if token is invalid
+            return res.status(403).json({error: "Invalid or expired JSON web token."}); // Only if token is invalid
         }
         try {
             const validation_errors = validationResult(req);
@@ -66,10 +66,10 @@ router.post('/', verifyToken, [
             post.save().then(function() {
                 res.json(post);
             }, function(err) {
-                return res.status(500).json({error: "Could not create new post in database"}); // New post could not be created/added to the database
+                return res.status(500).json({error: "Could not create new post in database. Please try again."}); // New post could not be created/added to the database
             });
         } catch {
-            res.status(500).json({error: "Server error"});
+            res.status(500).json({error: "Server error. Please try again."});
         }
     });
 });
@@ -81,16 +81,20 @@ router.patch('/:postId', verifyToken, [
 ], async(req, res) => {
     jwt.verify(req.token, process.env.JWT_SECRET_KEY, async(err, token) => {
         if(err) {
-            return res.status(403).json({error: "Error 403: Forbidden"});
+            return res.status(403).json({error: "Invalid or expired JSON web token."});
         } 
+        const validation_errors = validationResult(req);
+        if(!validation_errors.isEmpty()) {
+            return res.status(400).json({errors: validation_errors.array()});
+        }
         try {
             const post = await Post.findByIdAndUpdate(req.params.postId, req.body, {new: true});
             if(!post) {
-                return res.status(404).send({error: "Post not found"});
+                return res.status(404).json({error: "Post not found."});
             }
             res.json(post);
         } catch {
-            res.status(500).json({error: "Server error"});
+            res.status(500).json({error: "Server error. Please try again."});
         }
     })
 });
@@ -98,17 +102,17 @@ router.patch('/:postId', verifyToken, [
 router.delete('/:postId', verifyToken, (req, res) => {
     jwt.verify(req.token, process.env.JWT_SECRET_KEY, async(err, token) => {
         if(err) {
-            return res.status(403).json({error: "Error 403: Forbidden"});
+            return res.status(403).json({error: "Invalid or expired JSON web token."});
         } 
         try {
             const post = await Post.findByIdAndRemove(req.params.postId);
             if(!post) {
-                return res.status(404).send({error: "Post not found"});
+                return res.status(404).json({error: "Post not found."});
             }
             await Comment.deleteMany({ post: post._id }); // Delete any comments associated with the deleted post
             res.json(post);
         } catch {
-            res.status(500).json({error: "Server error"});
+            res.status(500).json({error: "Server error. Please try again."});
         }
     });
 });
