@@ -75,25 +75,25 @@ router.post('/', [
 router.patch('/:userId', verifyToken, [(req, res, next) => 
     {
         if(req.body.username) {
-            body('username').trim().isLength({min: 1}).escape().withMessage("Username must be specified.").isAlphanumeric().withMessage("Username has non-alphanumeric characters.");
+            body('username').trim().isLength({min: 1}).escape().withMessage("Username must be specified.").isAlphanumeric().withMessage("Username has non-alphanumeric characters.")(req, res, next);
         }
         if(req.body.first_name) {
-            body('first_name').trim().isLength({min: 1}).escape().withMessage("First name must be specified.").isAlphanumeric().withMessage("First name has non-alphanumeric characters.");
+            body('first_name').trim().isLength({min: 1}).escape().withMessage("First name must be specified.").isAlphanumeric().withMessage("First name has non-alphanumeric characters.")(req, res, next);
         }
         if(req.body.last_name) {
-            body('last_name').trim().isLength({min: 1}).escape().withMessage("Last name must be specified.").isAlphanumeric().withMessage("Last name has non-alphanumeric characters.");
+            body('last_name').trim().isLength({min: 1}).escape().withMessage("Last name must be specified.").isAlphanumeric().withMessage("Last name has non-alphanumeric characters.")(req, res, next);
         }
         if(req.body.old_password) {
-            body('old_password').trim().isLength({min: 8}).escape().withMessage("You must enter your old password.");
+            body('old_password').trim().isLength({min: 8}).escape().withMessage("You must enter your old password.")(req, res, next);
         }
         if(req.body.password) {
-            body('password').trim().isLength({min: 8}).escape().withMessage("Password must have 8 or more characters.");
+            body('password').trim().isLength({min: 8}).escape().withMessage("Password must have 8 or more characters.")(req, res, next);
         }
         if(req.body.confirm_password) {
-            body('confirm_password').trim().escape().custom((value, {req}) => value === req.body.password).withMessage("The passwords do not match.");
+            body('confirm_password').trim().escape().custom((value, {req}) => value === req.body.password).withMessage("The passwords do not match.")(req, res, next);
         }
         if(req.body.admin_passcode) {
-            body('admin_passcode').trim().escape().custom((value, {req}) => value === process.env.ADMIN_PASSCODE).withMessage("The admin passcode you entered is incorrect.");
+            body('admin_passcode').trim().escape().custom((value, {req}) => value === process.env.ADMIN_PASSCODE).withMessage("The admin passcode you entered is incorrect.")(req, res, next);
         }
         next();
     }
