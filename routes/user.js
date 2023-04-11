@@ -72,14 +72,31 @@ router.post('/', [
     }
 });
 
-router.patch('/:userId', verifyToken, [
-    body('username').trim().isLength({min: 1}).escape().withMessage("Username must be specified.").isAlphanumeric().withMessage("Username has non-alphanumeric characters."),
-    body('first_name').trim().isLength({min: 1}).escape().withMessage("First name must be specified.").isAlphanumeric().withMessage("First name has non-alphanumeric characters."),
-    body('last_name').trim().isLength({min: 1}).escape().withMessage("Last name must be specified.").isAlphanumeric().withMessage("Last name has non-alphanumeric characters."),
-    body('old_password').trim().isLength({min: 8}).escape().withMessage("You must enter your old password."),
-    body('password').trim().isLength({min: 8}).escape().withMessage("Password must have 8 or more characters."),
-    body('confirm_password').trim().escape().custom((value, {req}) => value === req.body.password).withMessage("The passwords do not match."),
-    body('admin_passcode').trim().escape().custom((value, {req}) => value === process.env.ADMIN_PASSCODE).withMessage("The admin passcode you entered is incorrect."),
+router.patch('/:userId', verifyToken, [(req, res, next) => 
+    {
+        if(req.body.username) {
+            body('username').trim().isLength({min: 1}).escape().withMessage("Username must be specified.").isAlphanumeric().withMessage("Username has non-alphanumeric characters.");
+        }
+        if(req.body.first_name) {
+            body('first_name').trim().isLength({min: 1}).escape().withMessage("First name must be specified.").isAlphanumeric().withMessage("First name has non-alphanumeric characters.");
+        }
+        if(req.body.last_name) {
+            body('last_name').trim().isLength({min: 1}).escape().withMessage("Last name must be specified.").isAlphanumeric().withMessage("Last name has non-alphanumeric characters.");
+        }
+        if(req.body.old_password) {
+            body('old_password').trim().isLength({min: 8}).escape().withMessage("You must enter your old password.");
+        }
+        if(req.body.password) {
+            body('password').trim().isLength({min: 8}).escape().withMessage("Password must have 8 or more characters.");
+        }
+        if(req.body.confirm_password) {
+            body('confirm_password').trim().escape().custom((value, {req}) => value === req.body.password).withMessage("The passwords do not match.");
+        }
+        if(req.body.admin_passcode) {
+            body('admin_passcode').trim().escape().custom((value, {req}) => value === process.env.ADMIN_PASSCODE).withMessage("The admin passcode you entered is incorrect.");
+        }
+        next();
+    }
 ], (req, res) => {
     jwt.verify(req.token, process.env.JWT_SECRET_KEY, async(err, token) => {
         if(err) {
