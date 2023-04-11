@@ -74,19 +74,10 @@ router.post('/', verifyToken, [
     });
 });
 
-router.patch('/:postId', verifyToken, [(req, res, next) => 
-    {
-        if(req.body.title) {
-            body('title').isLength({min: 1}).escape().withMessage("Post title must be specified.");
-        }
-        if(req.body.content) {
-            body('content').isLength({min: 1}).escape().withMessage("Content of post must be specified.");
-        }
-        if(req.body.published) {
-            body('published').isBoolean().withMessage("published must be a boolean value.");
-        }
-        next();
-    }
+router.patch('/:postId', verifyToken, [
+    body('title').if(body('title').exists()).isLength({min: 1}).escape().withMessage("Post title must be specified."),
+    body('content').if(body('content').exists()).isLength({min: 1}).escape().withMessage("Content of post must be specified."),
+    body('published').if(body('published').exists()).isBoolean().withMessage("published must be a boolean value."),
 ], async(req, res) => {
     jwt.verify(req.token, process.env.JWT_SECRET_KEY, async(err, token) => {
         if(err) {

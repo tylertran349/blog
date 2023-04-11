@@ -66,13 +66,8 @@ router.post('/', verifyToken, [
     });
 });
 
-router.patch('/:commentId', verifyToken, [(req, res, next) => 
-    {
-        if(req.body.content) {
-            body('content').isLength({min: 1}).escape().withMessage("Comment must have one or more characters.");
-        }
-        next();
-    }
+router.patch('/:commentId', verifyToken, [
+    body('content').if(body('content').exists()).isLength({min: 1}).escape().withMessage("Comment must have one or more characters."),
 ], (req, res) => {
     jwt.verify(req.token, process.env.JWT_SECRET_KEY, async(err, token) => {
         if(err) {
