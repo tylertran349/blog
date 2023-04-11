@@ -86,6 +86,10 @@ router.patch('/:userId', verifyToken, [
             return res.status(403).json({error: "Error 403: Forbidden"});
         }
         try {
+            const validation_errors = validationResult(req);
+            if(!validation_errors.isEmpty()) {
+                return res.status(400).json({errors: validation_errors.array()});
+            }
             let user = await User.findById(req.params.userId);
             if(!user) {
                 return res.status(404).json({error: "User not found."});
