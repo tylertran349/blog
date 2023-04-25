@@ -2,6 +2,7 @@ const express = require('express');
 const { Router } = require('express');
 const router = Router();
 const Post = require("../models/post");
+const User = require("../models/user");
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 require('dotenv').config();
@@ -42,7 +43,7 @@ router.post('/', verifyToken, [
     body('content').isLength({min: 1}).escape().withMessage("Post content must have one or more characters."),
     body('published').isBoolean().withMessage("published must be a boolean value."),
 ], (req, res) => {
-    jwt.verify(req.token, process.env.JWT_SECRET_KEY, (err, token) => {
+    jwt.verify(req.token, process.env.JWT_SECRET_KEY, async(err, token) => {
         if(err) {
             return res.status(403).json({error: "Invalid or expired JSON web token."}); // Only if token is invalid
         }
@@ -63,6 +64,15 @@ router.post('/', verifyToken, [
                 user: token.user, // token.user = user associated with decoded token
                 comments: [],
             });
+
+            // Update user that wrote the post with new posts array
+            const foundUser = await User.findById(token.user); // Find user that made comment
+            if(!foundUser) {
+                return res.status(404).json({error: "User not found."}); // Only if user associated with comment was not found in database
+            }
+            foundUser.posts.push(post); // Add comment to comments array associated with user
+            await foundUser.save();
+
             post.save().then(function() {
                 res.json(post);
             }, function(err) {
@@ -110,6 +120,15 @@ router.delete('/:postId', verifyToken, (req, res) => {
                 return res.status(404).json({error: "Post not found."});
             }
             await Comment.deleteMany({ post: post._id }); // Delete any comments associated with the deleted post
+
+            // Remove post from posts array field of user that wrote the now-deleted post
+            const user = await User.findOne({ posts: req.params.postId });
+            if(!user) {
+                return res.status(404).json({error: "User not found."});
+            }
+            user.posts = user.posts.filter((postObj) => postObj._id.toString() !== req.params.postId);
+            await user.save();
+
             res.json(post);
         } catch {
             res.status(500).json({error: "Server error. Please try again."});
