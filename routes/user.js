@@ -58,6 +58,8 @@ router.post('/', [
                         last_name,
                         password: hashedPassword,
                         is_admin: false,
+                        posts: [],
+                        comments: [],
                     });
                     user.save().then(function() {
                         res.json(user);
