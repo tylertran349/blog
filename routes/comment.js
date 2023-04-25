@@ -3,6 +3,7 @@ const { Router } = require('express');
 const router = Router();
 const Comment = require("../models/comment");
 const Post = require("../models/post");
+const User = require("../models/user");
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 require('dotenv').config();
@@ -49,12 +50,23 @@ router.post('/', verifyToken, [
                 user: token.user,
                 post,
             });
+
+            // Update blog post associated with comment with new comments array
             const foundPost = await Post.findById(post); // Find blog post associated with comment
             if(!foundPost) {
                 return res.status(404).json({error: "Post not found."}); // Only if blog post associated with comment was not found in database
             }
             foundPost.comments.push(comment); // Add comment to comments array associated with blog post
             await foundPost.save();
+
+            // Update user that wrote comment with new comments array
+            const foundUser = await User.findById(token.user); // Find user that made comment
+            if(!foundUser) {
+                return res.status(404).json({error: "User not found."}); // Only if user associated with comment was not found in database
+            }
+            foundUser.comments.push(comment); // Add comment to comments array associated with user
+            await foundUser.save();
+
             comment.save().then(function() {
                 res.json(comment);
             }, function(err) {
@@ -99,12 +111,23 @@ router.delete('/:commentId', verifyToken, (req, res) => {
             if(!comment) {
                 return res.status(404).json({error: "Comment not found."});
             }
-            const post = await Post.findOne({ comments: req.params.commentId });
+
+            // Remove the now-deleted comment from the comments array field of the post previously associated with the now-deleted comment
+            const post = await Post.findOne({ comments: req.params.commentId }); // Finds a blog post with a specific comment ID defined in its comments array field
             if(!post) {
                 return res.status(404).json({error: "Post not found."});
             }
-            post.comments = post.comments.filter((commentObj) => commentObj._id.toString() !== req.params.commentId);
+            post.comments = post.comments.filter((commentObj) => commentObj._id.toString() !== req.params.commentId); // Updates the comments array field of the associated post with its current array elements minus the comment that was just deleted
             await post.save();
+
+            // Remove the now-deleted comment from the comments array field of the user that made the now-deleted comment
+            const user = await User.findOne({ comments: req.params.commentId });
+            if(!user) {
+                return res.status(404).json({error: "User not found."});
+            }
+            user.comments = user.comments.filter((commentObj) => commentObj._id.toString() !== req.params.commentId);
+            await user.save();
+
             res.json(comment);
         } catch {
             res.status(500).json({error: "Server error. Please try again."});
