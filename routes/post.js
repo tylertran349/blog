@@ -62,16 +62,16 @@ router.post('/', verifyToken, [
                 date: new Date(),
                 liked_by: [],
                 published,
-                user: token.user, // token.user = user associated with decoded token
+                user: await User.findById(token.user), // Save full user object to user attribute of new post
                 comments: [],
             });
 
             // Update user that wrote the post with new posts array
-            const foundUser = await User.findById(token.user); // Find user that made comment
+            const foundUser = await User.findById(token.user); // Find user that made post
             if(!foundUser) {
-                return res.status(404).json({error: "User not found."}); // Only if user associated with comment was not found in database
+                return res.status(404).json({error: "User not found."}); // Only if user associated with post was not found in database
             }
-            foundUser.posts.push(post); // Add comment to comments array associated with user
+            foundUser.posts.push(post); // Add post to posts array associated with user
             await foundUser.save();
 
             post.save().then(function() {
