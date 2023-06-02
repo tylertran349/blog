@@ -97,6 +97,9 @@ router.patch('/:commentId', verifyToken, [
                 return res.status(404).json({error: "Comment not found."});
             }
 
+            const post = await Post.updateMany({ "comments._id": new ObjectId(req.params.commentId)}, { $set: { "comments.$": comment }}); // Update the comment object in the comments array field of the associated blog post
+            const user = await User.updateMany({ "comments._id": new ObjectId(req.params.commentId)}, { $set: { "comments.$": comment }}); // Update the comment object in the comments array field of the comment's author
+
             res.json(comment);
         } catch {
             res.status(500).json({error: "Server error. Please try again."});
