@@ -43,13 +43,13 @@ router.post('/', verifyToken, [
             if(!validation_errors.isEmpty()) {
                 return res.status(400).json({errors: validation_errors.array()});
             }
-            const {content, post} = req.body;
+            //const {content, post} = req.body;
             const comment = new Comment({
-                content,
+                content: req.body.content,
                 date: new Date(),
                 liked_by: [],
                 user: token.user,
-                post,
+                post: req.body.post,
             });
 
             // Update blog post associated with comment with new comments array
@@ -79,7 +79,6 @@ router.post('/', verifyToken, [
     });
 });
 
-// TODO: Update the comment object in the comments field of the post and user associated with the updated comment
 router.patch('/:commentId', verifyToken, [
     body('content').if(body('content').exists()).isLength({min: 1}).escape().withMessage("Comment must have one or more characters."),
 ], (req, res) => {
