@@ -98,7 +98,13 @@ router.patch('/:commentId', verifyToken, [
             }
 
             const post = await Post.updateMany({ "comments._id": new ObjectId(req.params.commentId)}, { $set: { "comments.$": comment }}); // Update the comment object in the comments array field of the associated blog post
+            if(!post) {
+                return res.status(404).json({error: "Post not found."});
+            }
             const user = await User.updateMany({ "comments._id": new ObjectId(req.params.commentId)}, { $set: { "comments.$": comment }}); // Update the comment object in the comments array field of the comment's author
+            if(!user) {
+                return res.status(404).json({error: "User not found."});
+            }
 
             res.json(comment);
         } catch {
@@ -117,6 +123,7 @@ router.delete('/:commentId', verifyToken, (req, res) => {
             if(!comment) {
                 return res.status(404).json({error: "Comment not found."});
             }
+            
             // Remove the now-deleted comment from the comments array field of the post previously associated with the now-deleted comment
             const post = await Post.updateMany({}, { $pull: { comments: { _id: new ObjectId(req.params.commentId) }}});
             if(!post) {
