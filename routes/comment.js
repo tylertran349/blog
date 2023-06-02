@@ -43,13 +43,13 @@ router.post('/', verifyToken, [
             if(!validation_errors.isEmpty()) {
                 return res.status(400).json({errors: validation_errors.array()});
             }
-            //const {content, post} = req.body;
+            const {content, post} = req.body;
             const comment = new Comment({
-                content: req.body.content,
+                content,
                 date: new Date(),
                 liked_by: [],
                 user: token.user,
-                post: req.body.post,
+                post,
             });
 
             // Update blog post associated with comment with new comments array
