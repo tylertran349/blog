@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 require('dotenv').config();
 const verifyToken = require('./verify_token');
+const ObjectId = require('mongodb').ObjectId;
 
 router.use(express.json());
 router.use(express.urlencoded({extended: true}));
@@ -103,6 +104,10 @@ router.patch('/:postId', verifyToken, [
             if(!post) {
                 return res.status(404).json({error: "Post not found."});
             }
+
+            await User.updateMany({ "posts._id": new ObjectId(req.params.postId)}, { $set: { "posts.$": post }}); // Update the blog post object in the "posts" array field of the associated blog post
+            await Comment.updateMany({ "post._id": req.params.postId }, { $set: { "post": post }}); // Update the blog post object in the "post" object field for all comments associated with the updated blog post
+
             res.json(post);
         } catch {
             res.status(500).json({error: "Server error. Please try again."});
@@ -121,21 +126,12 @@ router.delete('/:postId', verifyToken, (req, res) => {
                 return res.status(404).json({error: "Post not found."});
             }
 
-            await Comment.deleteMany({ post: post._id }); // Delete any comments associated with the deleted post
-            
-            const users = await User.find({ comments: { $in: post.comments }}); // Create an array of users for which their comments array field has any elements that match any element in post.comments
-            for(const user of users) {
-                user.comments = user.comments.filter((commentObj) => !post.comments.includes(commentObj._id.toString())); // For each user in the array created above, only keep any comments in their comments array field that do not match any comments in the now-deleted blog post
-                await user.save();
-            }
-
-            // Delete the post ID of the deleted post from the posts array field of the user that made the deleted post
-            const user = await User.findOne({ posts: req.params.postId });
+            const user = await User.updateMany({}, { $pull: { posts: { _id: new ObjectId(req.params.postId) }}});
             if(!user) {
                 return res.status(404).json({error: "User not found."});
             }
-            user.posts = user.posts.filter((postObj) => postObj._id.toString() !== req.params.postId);
-            await user.save();
+            await Comment.deleteMany({ "post._id": req.params.postId });
+            // Write code here to delete ALL comments associated with the now-deleted blog post
 
             res.json(post);
         } catch {
