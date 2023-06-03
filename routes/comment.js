@@ -48,7 +48,7 @@ router.post('/', verifyToken, [
                 content,
                 date: new Date(),
                 liked_by: [],
-                user: token.user,
+                user: await User.findById(token.user),
                 post: await Post.findById(post), // Set "post" field of new comment to the post object with the ID of the post ID request field
             });
 
