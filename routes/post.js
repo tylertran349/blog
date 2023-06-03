@@ -126,12 +126,11 @@ router.delete('/:postId', verifyToken, (req, res) => {
                 return res.status(404).json({error: "Post not found."});
             }
 
-            const user = await User.updateMany({}, { $pull: { posts: { _id: new ObjectId(req.params.postId) }}});
+            const user = await User.updateMany({}, { $pull: { posts: { _id: new ObjectId(req.params.postId) }}}); // Delete the post from the "posts" array field of the user that created the now-deleted blog post
             if(!user) {
                 return res.status(404).json({error: "User not found."});
             }
-            await Comment.deleteMany({ "post._id": req.params.postId });
-            // Write code here to delete ALL comments associated with the now-deleted blog post
+            await Comment.deleteMany({ "post._id": req.params.postId }); // Delete any comments that were associated with the now-deleted blog post
 
             res.json(post);
         } catch {
