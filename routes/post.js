@@ -106,7 +106,7 @@ router.patch('/:postId', verifyToken, [
             }
 
             await User.updateMany({ "posts._id": new ObjectId(req.params.postId)}, { $set: { "posts.$": post }}); // Update the blog post object in the "posts" array field of the associated blog post
-            await Comment.updateMany({ "post._id": req.params.postId }, { $set: { "post": post }}); // Update the blog post object in the "post" object field for all comments associated with the updated blog post
+            await Comment.updateMany({ "post._id": new ObjectId(req.params.postId) }, { $set: { "post": post }}); // Update the blog post object in the "post" object field for all comments associated with the updated blog post
 
             res.json(post);
         } catch {
@@ -130,7 +130,7 @@ router.delete('/:postId', verifyToken, (req, res) => {
             if(!user) {
                 return res.status(404).json({error: "User not found."});
             }
-            await Comment.deleteMany({ "post._id": req.params.postId }); // Delete any comments that were associated with the now-deleted blog post
+            await Comment.deleteMany({ "post._id": new ObjectId(req.params.postId) }); // Delete any comments that were associated with the now-deleted blog post
 
             res.json(post);
         } catch {

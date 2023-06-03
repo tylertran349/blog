@@ -135,8 +135,8 @@ router.delete('/:userId', verifyToken, (req, res) => {
             if(!user) {
                 return res.status(404).json({error: "User not found."});
             }
-            await Post.deleteMany({ "user._id": req.params.userId }); // Delete any posts associated with the deleted user
-            await Comment.deleteMany({ "user._id": req.params.userId }); // Delete any comments associated with the deleted user
+            await Post.deleteMany({ "user._id": new ObjectId(req.params.userId) }); // Delete any posts associated with the deleted user
+            await Comment.deleteMany({ "user._id": new ObjectId(req.params.userId) }); // Delete any comments associated with the deleted user
             res.json({message: "User deleted successfully."});
         } catch {
             res.status(500).json({error: "Server error."});
