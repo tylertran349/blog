@@ -117,7 +117,7 @@ router.patch('/:userId', verifyToken, [
                 return res.status(404).json({error: "User not found."});
             }
             await Post.updateMany({ "user._id": new ObjectId(req.params.userId) }, { $set: { "user": user }}); // Update the user object in the "user" object field for all blog posts associated with the updated user
-            await Comment.updateMany({ "user._id": req.params.userId }, { $set: { "user": user }}); // Update the user object in the "user" object field for all comments associated with the updated user
+            await Comment.updateMany({ "user._id": new ObjectId(req.params.userId) }, { $set: { "user": user }}); // Update the user object in the "user" object field for all comments associated with the updated user
             res.json(user);
         } catch {
             res.status(500).json({error: "Server error. Please try again."});
