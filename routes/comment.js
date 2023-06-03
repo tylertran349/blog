@@ -49,7 +49,7 @@ router.post('/', verifyToken, [
                 date: new Date(),
                 liked_by: [],
                 user: token.user,
-                post,
+                post: await Post.findById(post), // Set "post" field of new comment to the post object with the ID of the post ID request field
             });
 
             // Update blog post associated with comment with new comments array
