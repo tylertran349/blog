@@ -15,6 +15,19 @@ async function main() {
     await mongoose.connect(mongoDB);
 }
 
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Add the "Access-Control-Allow-Origin" header to all responses, allowing any domain to access the API's resources
+    res.header(
+        "Access-Control-Allow-Methods",
+        "GET,HEAD,PUT,POST,OPTIONS,UPDATE,DELETE"
+    );
+    res.header(
+        "Access-Control-Allow-Headers",
+        "Origin, X-Requested-With, Content-Type, Accept, Authorization, token"
+    );
+    next();
+});
+
 app.use(express.static('public'));
 
 app.use('/users', routes.user);
