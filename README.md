@@ -12,9 +12,10 @@ Visit the live blog front-end for this project [here](https://github.com/tylertr
 MONGO_URL="INSERT_YOUR_MONGODB_DATABASE_URL_HERE"
 JWT_SECRET_KEY="INSERT_ANY_STRING_HERE"
 ADMIN_PASSCODE="INSERT_ANY_STRING_HERE"
+PORT="INSERT_ANY_NUMBER_FROM_1_THROUGH 65535_HERE"
 ```
 6. Start the server using the command ```node app.js```.
-7. Open http://localhost:3000 with your browser to see the result.
+7. Open http://localhost:3000 (change the port number if needed) with your browser to see the result.
 
 ## Technologies
 - Node.js
