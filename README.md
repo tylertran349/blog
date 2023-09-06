@@ -1,6 +1,6 @@
 # Blog API for [Blog Project](https://github.com/tylertran349/blog-front-end)
 This is a RESTful API that can be used to build a blog client/front-end.
-Visit the live blog front-end for this project [here](https://github.com/tylertran349/blog-front-end)
+Visit the live blog front-end for this project [here](https://github.com/tylertran349/blog-front-end).
 
 ## How to Run This App Locally
 1. Clone the repository to your local machine using the command ```git clone git@github.com:tylertran349/blog-api.git```
@@ -22,3 +22,4 @@ PORT="INSERT_ANY_NUMBER_FROM_1_THROUGH 65535_HERE"
 - Express
 - MongoDB
 - PassportJS for local and JWT authentication
+- bcrypt.js for password encryption
